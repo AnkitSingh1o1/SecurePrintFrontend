@@ -36,22 +36,69 @@ const boot = () => {
     return;
   }
 
-  // CRITICAL: Set position immediately - PDFViewer requires absolute/relative positioning
-  // Calculate toolbar and footer heights to position container correctly
+  // CRITICAL: Set position immediately - PDFViewer requires absolute positioning
+  // Position container to account for toolbar and footer
   const toolbar = document.querySelector(".viewer-toolbar");
   const footer = document.querySelector(".viewer-footer");
-  const toolbarHeight = toolbar ? toolbar.offsetHeight : 80;
-  const footerHeight = footer ? footer.offsetHeight : 60;
+  const toolbarHeight = toolbar ? toolbar.offsetHeight : 0;
+  const footerHeight = footer ? footer.offsetHeight : 0;
+  
+  // Use 100vh (full viewport height) since we're in an iframe
+  // The iframe itself should be full height, so use 100vh for the content
+  const shell = document.querySelector(".viewer-shell");
+  const shellHeight = shell ? shell.offsetHeight : 0;
+  
+  // Calculate height: use shell height if available, otherwise use 100vh
+  const availableHeight = shellHeight > 0 
+    ? shellHeight - toolbarHeight - footerHeight
+    : `calc(100vh - ${toolbarHeight + footerHeight}px)`;
   
   viewerContainer.style.position = "absolute";
   viewerContainer.style.top = `${toolbarHeight}px`;
   viewerContainer.style.left = "0";
   viewerContainer.style.right = "0";
-  viewerContainer.style.bottom = `${footerHeight}px`;
   viewerContainer.style.width = "100%";
+  
+  // Use calc() for height to handle iframe sizing better
+  if (typeof availableHeight === "string") {
+    viewerContainer.style.height = availableHeight;
+  } else {
+    viewerContainer.style.height = `${availableHeight}px`;
+  }
+  
+  viewerContainer.style.overflow = "auto";
+  viewerContainer.style.overflowX = "hidden";
+  viewerContainer.style.overflowY = "auto";
+  
+  console.log("Container positioned:", {
+    top: toolbarHeight,
+    height: availableHeight,
+    shellHeight,
+    toolbarHeight,
+    footerHeight,
+    computedHeight: window.getComputedStyle(viewerContainer).height,
+    viewportHeight: window.innerHeight,
+    docHeight: document.documentElement.clientHeight,
+  });
   
   // Force a reflow to ensure styles are applied
   void viewerContainer.offsetHeight;
+  
+  // Also update on window resize
+  const handleResize = () => {
+    const shell = document.querySelector(".viewer-shell");
+    const shellH = shell ? shell.offsetHeight : 0;
+    const newHeight = shellH > 0 
+      ? shellH - toolbarHeight - footerHeight
+      : `calc(100vh - ${toolbarHeight + footerHeight}px)`;
+    
+    if (typeof newHeight === "string") {
+      viewerContainer.style.height = newHeight;
+    } else {
+      viewerContainer.style.height = `${newHeight}px`;
+    }
+  };
+  window.addEventListener("resize", handleResize);
 
   printBtn.disabled = true;
 
@@ -185,9 +232,49 @@ const boot = () => {
         printBtn.disabled = false;
 
         // Set up print button handler after PDF is loaded
-        printBtn.addEventListener("click", () => {
-          if (!pdfDoc) return;
-          window.print();
+        // Ensure all pages are rendered before printing
+        printBtn.addEventListener("click", async () => {
+          if (!pdfDoc || !pdfViewer) return;
+          
+          try {
+            printBtn.disabled = true;
+            statusEl.textContent = "Preparing all pages for printing...";
+            
+            // Wait for all pages to be loaded and rendered
+            await pdfViewer.pagesPromise;
+            
+            // Force render all pages to ensure they're in the DOM for printing
+            const numPages = pdfDoc.numPages;
+            for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+              const pageView = pdfViewer.getPageView(pageNum - 1);
+              if (pageView && !pageView.renderingState) {
+                await pageView.draw();
+              }
+            }
+            
+            statusEl.textContent = "Opening print dialog...";
+            
+            // Small delay to ensure DOM is updated
+            setTimeout(() => {
+              // Dispatch print event through eventBus - this handles all pages
+              eventBus.dispatch("print", {
+                source: window
+              });
+              
+              // Also trigger window.print as fallback
+              // The @media print CSS will ensure all pages are visible
+              window.print();
+              
+              printBtn.disabled = false;
+              statusEl.textContent = "Secure rendering active.";
+            }, 100);
+          } catch (error) {
+            console.error("Print error:", error);
+            statusEl.textContent = "Print error occurred.";
+            printBtn.disabled = false;
+            // Fallback to window.print
+            window.print();
+          }
         });
       } catch (error) {
         console.error("PDF loading error:", error);

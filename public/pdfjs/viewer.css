@@ -10,9 +10,13 @@
   user-select: none;
 }
 
+html,
 body {
   margin: 0;
-  min-height: 100vh;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
   background: #050505;
 }
 
@@ -69,9 +73,8 @@ body {
   overflow: auto;
   background: #0b0b0b;
   padding: 2rem;
-  /* Account for toolbar and footer heights */
-  padding-top: calc(2rem + var(--toolbar-height, 80px));
-  padding-bottom: calc(2rem + var(--footer-height, 60px));
+  /* Fallback height calculation */
+  height: calc(100vh - var(--toolbar-height, 91px) - var(--footer-height, 49px));
 }
 
 .viewer-footer {
@@ -100,6 +103,22 @@ body {
     display: none;
   }
   .viewer-container {
+    position: static !important;
     padding: 0;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .pdfViewer {
+    display: block;
+  }
+  .pdfViewer .page {
+    page-break-after: always;
+    page-break-inside: avoid;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .pdfViewer .page:last-child {
+    page-break-after: auto;
   }
 }

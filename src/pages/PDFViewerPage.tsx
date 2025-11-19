@@ -23,8 +23,9 @@ const PDFViewerPage = () => {
 
   return (
     <main
-      className="flex min-h-screen flex-col bg-white"
+      className="flex h-screen flex-col bg-white overflow-hidden"
       onContextMenu={(event) => event.preventDefault()}
+      style={{ height: "100vh" }}
     >
       <div className="border-b border-gray-100 bg-white px-6 py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -45,12 +46,18 @@ const PDFViewerPage = () => {
           </div>
         </div>
       </div>
-      <div className="flex-1 bg-black">
+      <div className="flex-1 bg-black" style={{ minHeight: 0 }}>
         {token && backendUrl && viewerSrc ? (
           <iframe
             title="Secure PDF viewer"
             src={viewerSrc}
             className="h-full w-full border-0"
+            style={{ 
+              height: "100%",
+              width: "100%",
+              minHeight: "100%",
+              display: "block"
+            }}
             allow="fullscreen"
             onError={(e) => {
               console.error("Iframe load error:", e);
