@@ -1,0 +1,105 @@
+:root {
+  font-family: "Inter", system-ui, sans-serif;
+  color: #050505;
+  background: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #050505;
+}
+
+.viewer-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #050505;
+  color: white;
+}
+
+.viewer-toolbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #050505;
+}
+
+.viewer-toolbar h1 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  margin: 0;
+}
+
+.viewer-toolbar p {
+  margin: 0.25rem 0 0;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tool-btn {
+  background: #1e5fe0;
+  border: 1px solid #1e5fe0;
+  color: white;
+  border-radius: 999px;
+  padding: 0.5rem 1.75rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.viewer-container {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+  background: #0b0b0b;
+  padding: 2rem;
+  /* Account for toolbar and footer heights */
+  padding-top: calc(2rem + var(--toolbar-height, 80px));
+  padding-bottom: calc(2rem + var(--footer-height, 60px));
+}
+
+.viewer-footer {
+  position: relative;
+  z-index: 10;
+  padding: 1rem 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: #050505;
+}
+
+.pdfViewer .page {
+  margin: 0 auto 2rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+@media print {
+  body {
+    background: white;
+  }
+  .viewer-toolbar,
+  .viewer-footer {
+    display: none;
+  }
+  .viewer-container {
+    padding: 0;
+  }
+}

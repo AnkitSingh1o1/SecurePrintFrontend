@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecurePrint Viewer</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./pdf_viewer.css" />
+    <link rel="stylesheet" href="./viewer.css" />
+    <script defer src="./pdf.min.js"></script>
+    <script defer src="./pdf_viewer.js"></script>
+    <script type="module" src="./viewer.js"></script>
+  </head>
+  <body>
+    <div class="viewer-shell">
+      <header class="viewer-toolbar">
+        <div class="toolbar-left">
+          <h1>Secure session</h1>
+          <p id="file-meta">Decrypting...</p>
+        </div>
+        <div class="toolbar-right">
+          <button id="print-btn" class="tool-btn" type="button">Print</button>
+        </div>
+      </header>
+      <div id="viewerContainer" class="viewer-container">
+        <div id="viewer" class="pdfViewer"></div>
+      </div>
+      <footer class="viewer-footer">
+        <div id="status">Preparing encrypted stream...</div>
+      </footer>
+    </div>
+  </body>
+</html>
