@@ -1,6 +1,71 @@
-# React + TypeScript + Vite
+# SecurePrint Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A secure PDF upload and viewing application built with React, TypeScript, and Vite.
+
+## Features
+
+- 🔒 Secure PDF upload with end-to-end encryption
+- 📄 Multi-page PDF viewing with secure streaming
+- 🖨️ Full PDF printing support (all pages)
+- 🔗 One-time shareable links per PDF
+- 🚫 Download blocking for security
+- 📱 Responsive design
+
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- PDF.js for PDF rendering
+- React Router for navigation
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20.19+ or 22.12+
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory:
+   ```env
+   VITE_BACKEND_URL=https://secureprint-19d4.onrender.com
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Deployment
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed Vercel deployment instructions.
+
+### Quick Deploy to Vercel
+
+1. Set environment variable `VITE_BACKEND_URL` in Vercel dashboard
+2. Push to GitHub and connect to Vercel, or use `vercel --prod`
+
+## Environment Variables
+
+- `VITE_BACKEND_URL` - Backend API URL (required)
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
 Currently, two official plugins are available:
 
