@@ -189,6 +189,11 @@ const boot = () => {
   const eventBus = new pdfjsViewer.EventBus();
   const linkService = new pdfjsViewer.PDFLinkService({ eventBus });
   
+  // Listen for print event to ensure pages are rendered at print scale
+  eventBus.on("print", () => {
+    console.log("PDF.js print event triggered - pages will be rendered at print scale");
+  });
+  
   try {
     const pdfViewer = new pdfjsViewer.PDFViewer({
       container: viewerContainer,
@@ -232,49 +237,152 @@ const boot = () => {
         printBtn.disabled = false;
 
         // Set up print button handler after PDF is loaded
-        // Ensure all pages are rendered before printing
+        // CRITICAL: Wait for ALL pages to be fully rendered before opening print dialog
+        let isPrinting = false;
+        
         printBtn.addEventListener("click", async () => {
-          if (!pdfDoc || !pdfViewer) return;
+          if (!pdfDoc || !pdfViewer || isPrinting) return;
+          
+          isPrinting = true;
           
           try {
             printBtn.disabled = true;
-            statusEl.textContent = "Preparing all pages for printing...";
+            statusEl.textContent = "Preparing pages for printing...";
             
-            // Wait for all pages to be loaded and rendered
+            // Wait for pages to be initialized
             await pdfViewer.pagesPromise;
-            
-            // Force render all pages to ensure they're in the DOM for printing
             const numPages = pdfDoc.numPages;
-            for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-              const pageView = pdfViewer.getPageView(pageNum - 1);
-              if (pageView && !pageView.renderingState) {
-                await pageView.draw();
+            const { RenderingStates } = pdfjsViewer;
+            
+            // Step 1: Ensure all pages are in DOM and visible
+            for (let i = 0; i < numPages; i++) {
+              const pageView = pdfViewer.getPageView(i);
+              if (pageView) {
+                if (!pageView.div) {
+                  console.warn(`Page ${i + 1} div not initialized`);
+                  continue;
+                }
+                if (!pageView.div.parentNode) {
+                  viewerRoot.appendChild(pageView.div);
+                }
+                pageView.div.style.display = "block";
+                pageView.div.style.visibility = "visible";
+                // Only add page break if not the last page
+                if (i < numPages - 1) {
+                  pageView.div.style.pageBreakAfter = "always";
+                } else {
+                  pageView.div.style.pageBreakAfter = "auto";
+                }
               }
             }
             
-            statusEl.textContent = "Opening print dialog...";
+            // Step 2: Trigger rendering for all pages that need it
+            statusEl.textContent = "Starting page rendering...";
+            const renderPromises = [];
+            for (let i = 0; i < numPages; i++) {
+              const pageView = pdfViewer.getPageView(i);
+              if (pageView) {
+                // If page is not rendered, trigger render
+                if (pageView.renderingState !== RenderingStates.FINISHED) {
+                  if (pageView.renderingState === RenderingStates.INITIAL) {
+                    renderPromises.push(pageView.draw());
+                  }
+                }
+              }
+            }
             
-            // Small delay to ensure DOM is updated
-            setTimeout(() => {
-              // Dispatch print event through eventBus - this handles all pages
-              eventBus.dispatch("print", {
-                source: window
-              });
+            // Step 3: Wait for all render promises to complete
+            if (renderPromises.length > 0) {
+              statusEl.textContent = `Rendering ${renderPromises.length} pages...`;
+              await Promise.all(renderPromises);
+            }
+            
+            // Step 4: Wait in a loop until ALL pages are confirmed FINISHED
+            statusEl.textContent = "Verifying all pages are ready...";
+            let allRendered = false;
+            let attempts = 0;
+            const maxAttempts = 100; // 10 seconds max (100 * 100ms)
+            
+            while (!allRendered && attempts < maxAttempts) {
+              allRendered = true;
+              let renderedCount = 0;
+              let renderingCount = 0;
               
-              // Also trigger window.print as fallback
-              // The @media print CSS will ensure all pages are visible
-              window.print();
+              for (let i = 0; i < numPages; i++) {
+                const pageView = pdfViewer.getPageView(i);
+                if (pageView) {
+                  if (pageView.renderingState === RenderingStates.FINISHED) {
+                    renderedCount++;
+                  } else {
+                    allRendered = false;
+                    if (pageView.renderingState === RenderingStates.RUNNING) {
+                      renderingCount++;
+                    } else if (pageView.renderingState === RenderingStates.INITIAL) {
+                      // Start rendering if not started
+                      pageView.draw();
+                    }
+                  }
+                } else {
+                  allRendered = false;
+                }
+              }
               
-              printBtn.disabled = false;
-              statusEl.textContent = "Secure rendering active.";
-            }, 100);
+              if (!allRendered) {
+                statusEl.textContent = `Rendering pages: ${renderedCount}/${numPages} (${renderingCount} in progress)...`;
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+              }
+            }
+            
+            // Step 5: Final verification - check all pages one more time
+            let finalCheck = true;
+            for (let i = 0; i < numPages; i++) {
+              const pageView = pdfViewer.getPageView(i);
+              if (!pageView || pageView.renderingState !== RenderingStates.FINISHED) {
+                finalCheck = false;
+                break;
+              }
+            }
+            
+            if (!finalCheck && attempts >= maxAttempts) {
+              statusEl.textContent = "Warning: Some pages may not be fully rendered";
+              console.warn("Timeout reached, some pages may not be rendered");
+            }
+            
+            // Step 6: Dispatch print event and wait a moment
+            eventBus.dispatch("print", { source: window });
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Step 7: Final check - ensure all pages are still visible
+            for (let i = 0; i < numPages; i++) {
+              const pageView = pdfViewer.getPageView(i);
+              if (pageView && pageView.div) {
+                pageView.div.style.display = "block";
+                pageView.div.style.visibility = "visible";
+              }
+            }
+            
+            // Step 8: NOW open print dialog - only after everything is ready
+            statusEl.textContent = "All pages ready. Opening print dialog...";
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            window.print();
+            
+            printBtn.disabled = false;
+            statusEl.textContent = "Secure rendering active.";
           } catch (error) {
             console.error("Print error:", error);
             statusEl.textContent = "Print error occurred.";
             printBtn.disabled = false;
-            // Fallback to window.print
-            window.print();
+          } finally {
+            isPrinting = false;
           }
+        });
+        
+        // Handle afterprint to reset state
+        window.addEventListener("afterprint", () => {
+          statusEl.textContent = "Secure rendering active.";
+          isPrinting = false;
         });
       } catch (error) {
         console.error("PDF loading error:", error);

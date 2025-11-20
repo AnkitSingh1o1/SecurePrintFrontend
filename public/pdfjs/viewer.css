@@ -95,30 +95,122 @@ body {
 }
 
 @media print {
-  body {
-    background: white;
-  }
-  .viewer-toolbar,
-  .viewer-footer {
-    display: none;
-  }
-  .viewer-container {
-    position: static !important;
+  @page {
+    margin: 0;
     padding: 0;
-    height: auto !important;
+    size: auto;
+  }
+  
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
     overflow: visible !important;
   }
+  
+  .viewer-shell {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+  
+  .viewer-toolbar,
+  .viewer-footer {
+    display: none !important;
+  }
+  
+  .viewer-container {
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+  
   .pdfViewer {
     display: block;
-  }
-  .pdfViewer .page {
-    page-break-after: always;
-    page-break-inside: avoid;
     margin: 0;
-    border-radius: 0;
-    box-shadow: none;
+    padding: 0;
+    width: 100%;
   }
+  
+  .pdfViewer .page {
+    page-break-inside: avoid;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    position: relative !important;
+  }
+  
+  /* Add page break after all pages except the last one */
+  .pdfViewer .page:not(:last-child) {
+    page-break-after: always;
+  }
+  
+  /* Last page should not have page break */
   .pdfViewer .page:last-child {
-    page-break-after: auto;
+    page-break-after: auto !important;
+  }
+  
+  /* Ensure canvas elements are visible in print */
+  .pdfViewer .page canvas {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+  
+  /* Ensure all page content is visible */
+  .pdfViewer .page > * {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .pdfViewer .page .canvasWrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .pdfViewer .page canvas {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Ensure all page elements are visible in print */
+  .pdfViewer .page > * {
+    display: block !important;
+    visibility: visible !important;
   }
 }
