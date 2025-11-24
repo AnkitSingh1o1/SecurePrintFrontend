@@ -236,6 +236,26 @@ const boot = () => {
         statusEl.textContent = "Secure rendering active.";
         printBtn.disabled = false;
 
+        // Add watermark with current date and time
+        const now = new Date();
+        const currentDate = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateTime = `${currentDate} ${currentTime}`;
+        const watermarkText = `SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime} SECUREPRINT_DO_NOT_REPLICATE ${dateTime}`;
+        const style = document.createElement('style');
+        style.id = 'watermark-style';
+        style.textContent = `.pdfViewer .page::after { content: ${JSON.stringify(watermarkText)} !important; }`;
+        document.head.appendChild(style);
+        
+        // Also listen for page render events to ensure watermark is applied
+        eventBus.on("pagerendered", () => {
+          // Force style reapplication
+          const existingStyle = document.getElementById('watermark-style');
+          if (existingStyle) {
+            existingStyle.textContent = `.pdfViewer .page::after { content: ${JSON.stringify(watermarkText)} !important; }`;
+          }
+        });
+
         // Set up print button handler after PDF is loaded
         // CRITICAL: Wait for ALL pages to be fully rendered before opening print dialog
         let isPrinting = false;

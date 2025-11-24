@@ -92,6 +92,32 @@ body {
   border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 25px 60px -20px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.pdfViewer .page::after {
+  content: "SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE SECUREPRINT_DO_NOT_REPLICATE";
+  position: absolute !important;
+  top: 20% !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 60% !important;
+  z-index: 1000 !important;
+  pointer-events: none !important;
+  display: block !important;
+  font-size: clamp(22px, 3.2vw, 44px) !important;
+  font-weight: 900 !important;
+  color: rgba(255, 0, 0, 0.5) !important;
+  line-height: 2.5 !important;
+  word-spacing: 0.8em !important;
+  text-align: center !important;
+  transform: rotate(-45deg) !important;
+  transform-origin: center center !important;
+  white-space: normal !important;
+  padding: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 @media print {
@@ -212,5 +238,10 @@ body {
   .pdfViewer .page > * {
     display: block !important;
     visibility: visible !important;
+  }
+  
+  /* Hide watermark in print */
+  .pdfViewer .page::after {
+    display: none !important;
   }
 }
